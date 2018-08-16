@@ -359,6 +359,7 @@ def pipelines( *args ):
                     return os.EX_SOFTWARE
 
                 if 'success' == status:
+                    print('Duration: %s' % jsn['duration'])
                     return os.EX_OK
 
                 if 'canceled' == status:
