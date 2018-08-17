@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import datetime
 import errno
 import json
 import os
@@ -354,17 +355,19 @@ def pipelines( *args ):
                     prev_status = status
                 else:
                     print( '.', end = '', flush = True )
-
-                if 'failed' == status:
-                    return os.EX_SOFTWARE
-
-                if 'success' == status:
-                    print('Duration: %s' % jsn['duration'])
-                    return os.EX_OK
-
-                if 'canceled' == status:
-                    print( "pipeline {} was cancelled externally".format( pipeline_id ) )
-                    return os.EX_OK
+                if jsn['duration']:
+                    if status in ('success', 'canceled'):
+                        exit_code = os.EX_OK
+                    else:
+                        exit_code = os.EX_SOFTWARE
+                    created_date = datetime.datetime.strptime(jsn['created_at'].split('.')[0], "%Y-%m-%dT%H:%M:%S")
+                    started_date = datetime.datetime.strptime(jsn['started_at'].split('.')[0], "%Y-%m-%dT%H:%M:%S")
+                    finished_date = datetime.datetime.strptime(jsn['finished_at'].split('.')[0], "%Y-%m-%dT%H:%M:%S")
+                    pending_duration = (started_date - created_date).seconds
+                    print('Pending duration: %s' % pending_duration)
+                    print('Task duration: %s' % int(jsn['duration']))
+                    print('Duration: %s' % (finished_date - created_date).seconds)
+                    return exit_code
 
     elif 'cancel' == getattr( pc, 'pipelines_cmd' ):
         jsn = pc._api.pipelines_cancel( getattr( pc, 'project_id' ), getattr( pc, 'pipeline_id' ) )
