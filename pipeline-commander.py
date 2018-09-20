@@ -85,9 +85,9 @@ class api_v4(object):
     def _post(self, url, data):
         self.V("POST APIv4 url '{0}'".format(url))
         if self._skip_ssl_verification:
-            response = requests.post(url, headers=self._headers, data=data, verify=False)
+            response = requests.post(url, headers=self._headers, json=data, verify=False)
         else:
-            response = requests.post(url, headers=self._headers, data=data)
+            response = requests.post(url, headers=self._headers, json=data)
         if response.status_code not in (200, 201):
             raise ValueError(response)
         jsn = json.loads(response.text)
@@ -121,12 +121,15 @@ class api_v4(object):
 
     # Create a New Pipeline
     # https://docs.gitlab.com/ee/api/pipelines.html#create-a-new-pipeline
-    def pipelines_create(self, project_id, ref, variables={}):
-        url = self._url + "/projects/{}".format(project_id) + "/pipeline"
-        data = {}
-        data.update({'ref': (None, ref)})
+    def pipelines_create(self, project_id, ref, variables=None):
+        variables = variables or {}
+        url = "{}/projects/{}/pipeline".format(self._url, project_id)
+        data = {
+            'ref': ref,
+            'variables': []
+        }
         for k, v in variables.items():
-            data.update({k: (None, v)})
+            data['variables'].append({'key': k, 'value': v})
         return self._post(url, data)
 
     # Cancel a Pipeline's Jobs
