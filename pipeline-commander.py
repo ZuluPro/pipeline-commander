@@ -357,6 +357,7 @@ def pipelines(*args):
                     print('Pending duration: %s' % pending_duration)
                     print('Task duration: %s' % int(jsn['duration']))
                     print('Duration: %s' % (finished_date - created_date).seconds)
+                    print('Status: %s' % status)
                     return exit_code
 
     elif 'cancel' == getattr(pc, 'pipelines_cmd'):
